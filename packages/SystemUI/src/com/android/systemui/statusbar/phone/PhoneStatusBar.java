@@ -683,7 +683,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
 
         if (mRecreating) {
-            removeSidebarView();
         } else {
             addActiveDisplayView();
         }
