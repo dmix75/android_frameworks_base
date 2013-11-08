@@ -2413,6 +2413,14 @@
         android:description="@string/permlab_copyProtectedData"
         android:protectionLevel="signature" />
 
+	<!-- Active Display Chameleonn OS -->
+    <!-- Internal permission protecting access to internal notification listener
+        @hide
+    -->
+    <permission android:name="android.permission.SYSTEM_NOTIFICATION_LISTENER"
+        android:protectionLevel="signature|system" />
+	<!-- Active Display Chameleonn OS -->
+
     <!-- Internal permission protecting access to the encryption methods
         @hide
     -->
