@@ -2548,10 +2548,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
     }
 
-    public void setNavigationBarLightsOn(boolean on, boolean force) {
-        mNavigationBarView.setLowProfile(!on, true, force);
-    }
-
     @Override
     public void topAppWindowChanged(boolean showMenu) {
         if (DEBUG) {
