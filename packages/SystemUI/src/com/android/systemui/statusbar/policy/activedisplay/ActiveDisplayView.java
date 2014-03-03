@@ -115,11 +115,12 @@ public class ActiveDisplayView extends FrameLayout {
     private static final int DISMISS_TARGET = 6;
 
     // messages sent to the handler for processing
-    private static final int MSG_SHOW_NOTIFICATION_VIEW = 1000;
-    private static final int MSG_HIDE_NOTIFICATION_VIEW = 1001;
-    private static final int MSG_SHOW_NOTIFICATION      = 1002;
-    private static final int MSG_SHOW_TIME              = 1003;
-    private static final int MSG_DISMISS_NOTIFICATION   = 1004;
+    private static final int MSG_SHOW_NOTIFICATION_VIEW 			= 1000;
+    private static final int MSG_HIDE_NOTIFICATION_VIEW 			= 1001;
+    private static final int MSG_SHOW_NOTIFICATION      			= 1002;
+    private static final int MSG_SHOW_TIME              			= 1003;
+    private static final int MSG_DISMISS_NOTIFICATION   			= 1004;
+    private static final int MSG_HIDE_TRIGGER_NOTIFICATION_VIEW 	= 1005;
 
     private BaseStatusBar mBar;
     private GlowPadView mGlowPadView;
@@ -172,10 +173,14 @@ public class ActiveDisplayView extends FrameLayout {
         @Override
         public void onNotificationPosted(final StatusBarNotification sbn) {
             if (shouldShowNotification() && isValidNotification(sbn)) {
-                // need to make sure either the screen is off or the user is currently
+            	
+            	Log.d(TAG, sbn.getNotification().toString());
+                
+            	// need to make sure either the screen is off or the user is currently
                 // viewing the notifications
                 if (ActiveDisplayView.this.getVisibility() == View.VISIBLE
                         || !isScreenOn())
+                	Log.d(TAG, "Show Notification");
                     showNotification(sbn, true);
             }
         }
@@ -200,13 +205,14 @@ public class ActiveDisplayView extends FrameLayout {
 
         public void onTrigger(final View v, final int target) {
             if (target == UNLOCK_TARGET) {
+            	Log.d(TAG, "Unlock selected!");
                 mNotification = null;
-                hideNotificationView();
+                hideTriggerNotificationView();
                 if (!mKeyguardManager.isKeyguardSecure()) {
                     sendUnlockBroadcast();
-                    // This is a BUTT ugly hack to allow dismissing the slide lock
                     Intent intent = new Intent(mContext, DummyActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    // This is a BUTT ugly hack to allow dismissing the slide lock
                     try {
                         // Dismiss the lock screen when Settings starts.
                         ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
@@ -215,7 +221,7 @@ public class ActiveDisplayView extends FrameLayout {
                     }
                 }
             } else if (target == OPEN_APP_TARGET) {
-                hideNotificationView();
+                hideTriggerNotificationView();
                 if (!mKeyguardManager.isKeyguardSecure()) {
                     sendUnlockBroadcast();
                     try {
@@ -225,6 +231,7 @@ public class ActiveDisplayView extends FrameLayout {
                     }
                 }
                 launchNotificationPendingIntent();
+                
             } else if (target == DISMISS_TARGET) {
                 dismissNotification();
             }
@@ -368,8 +375,11 @@ public class ActiveDisplayView extends FrameLayout {
                     handleShowNotificationView();
                     break;
                 case MSG_HIDE_NOTIFICATION_VIEW:
-                    handleHideNotificationView();
+                    handleHideNotificationView(true);
                     break;
+                case MSG_HIDE_TRIGGER_NOTIFICATION_VIEW:
+                	handleHideNotificationView(false);
+                	break;
                 case MSG_SHOW_NOTIFICATION:
                     boolean ping = msg.arg1 == 1;
                     handleShowNotification(ping);
@@ -580,6 +590,7 @@ public class ActiveDisplayView extends FrameLayout {
             PendingIntent contentIntent = mNotification.getNotification().contentIntent;
             if (contentIntent != null) {
                 try {
+              
                     contentIntent.send();
                     mNM.cancelNotificationFromSystemListener(mNotificationListener,
                             mNotification.getPackageName(), mNotification.getTag(),
@@ -597,6 +608,10 @@ public class ActiveDisplayView extends FrameLayout {
         mHandler.sendEmptyMessage(MSG_SHOW_NOTIFICATION_VIEW);
     }
 
+    private void hideTriggerNotificationView() {
+        mHandler.removeMessages(MSG_HIDE_TRIGGER_NOTIFICATION_VIEW);
+        mHandler.sendEmptyMessage(MSG_HIDE_TRIGGER_NOTIFICATION_VIEW);
+    }
     private void hideNotificationView() {
         mHandler.removeMessages(MSG_HIDE_NOTIFICATION_VIEW);
         mHandler.sendEmptyMessage(MSG_HIDE_NOTIFICATION_VIEW);
@@ -622,6 +637,7 @@ public class ActiveDisplayView extends FrameLayout {
     }
 
     private void handleShowNotificationView() {
+    	Log.d(TAG, "handleSHowNotificationView: Unlocking Screen");
         if (mKeyguardLock == null) {
             mKeyguardLock = mKeyguardManager.newKeyguardLock("active_display");
             mKeyguardLock.disableKeyguard();
@@ -632,14 +648,16 @@ public class ActiveDisplayView extends FrameLayout {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "handleSHowNotificationView: Delay!");
                 mBar.disable(0xffffffff);
             }
         }, 100);
         registerSensorListener(mLightSensor);
+        Log.d(TAG, "handleSHowNotificationView: Unlocking Screen Done!");
     }
 
-    private void handleHideNotificationView() {
-        if (mKeyguardLock != null) {
+    private void handleHideNotificationView(boolean keyguardreenable) {
+        if (mKeyguardLock != null && keyguardreenable) {
             mKeyguardLock.reenableKeyguard();
             mKeyguardLock = null;
         }
