@@ -63,6 +63,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -157,6 +158,7 @@ public class ActiveDisplayView extends FrameLayout {
     private boolean mDisplayNotifications = false;
     private boolean mDisplayNotificationText = false;
     private boolean mShowAllNotifications = false;
+    private boolean mLockScreenMode = false;
     private boolean mHideLowPriorityNotifications = false;
     private int mPocketMode = POCKET_MODE_OFF;
     private long mRedisplayTimeout = 0;
@@ -463,7 +465,32 @@ public class ActiveDisplayView extends FrameLayout {
         makeActiveDisplayView(newConfig.orientation, true);
     }
 
-    @Override
+    
+//    @Override
+//	public boolean onKeyDown(int keyCode, KeyEvent event) {
+//    
+//    	if ( mLockScreenMode ) {
+//
+//    		if ( ( keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ) || 
+//    				( keyCode == KeyEvent.KEYCODE_POWER ) || 
+//    				( keyCode == KeyEvent.KEYCODE_VOLUME_UP ) ||
+//    				(keyCode == KeyEvent.KEYCODE_CAMERA) ) {
+//    			// -- Check if we need to show screen now
+//    			return true; 
+//    		}
+//    	}
+//
+//    	if ( ( keyCode == KeyEvent.KEYCODE_BACK ) ||
+//    		 ( keyCode == KeyEvent.KEYCODE_APP_SWITCH ) ) {
+//    		Log.d(TAG, "Back Button or APP Switch deteched");
+//    		return true;
+//    	}
+//
+//    	return false;
+//
+//	}
+
+	@Override
     protected void dispatchDraw(Canvas canvas) {
         int layer = 0;
         if (mIsInBrightLight && mSunlightModeEnabled) {
@@ -473,6 +500,8 @@ public class ActiveDisplayView extends FrameLayout {
         super.dispatchDraw(canvas);
         if (mIsInBrightLight && mSunlightModeEnabled) canvas.restoreToCount(layer);
     }
+    
+    
 
     private void makeActiveDisplayView(int orientation, boolean recreate) {
         mContents.removeAllViews();
@@ -590,7 +619,6 @@ public class ActiveDisplayView extends FrameLayout {
             PendingIntent contentIntent = mNotification.getNotification().contentIntent;
             if (contentIntent != null) {
                 try {
-              
                     contentIntent.send();
                     mNM.cancelNotificationFromSystemListener(mNotificationListener,
                             mNotification.getPackageName(), mNotification.getTag(),
