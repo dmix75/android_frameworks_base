@@ -805,11 +805,12 @@ public class KeyguardHostView extends KeyguardViewBase {
     private void showNextSecurityScreenOrFinish(boolean authenticated) {
         if (DEBUG) Log.d(TAG, "showNextSecurityScreenOrFinish(" + authenticated + ")");
         boolean finish = false;
-        if (SecurityMode.None == mCurrentSecuritySelection) {
+        if (SecurityMode.None == mCurrentSecuritySelection || 
+            SecurityMode.ActiveDisplay == mCurrentSecuritySelection) {
             SecurityMode securityMode = mSecurityModel.getSecurityMode();
             // Allow an alternate, such as biometric unlock
             securityMode = mSecurityModel.getAlternateFor(securityMode);
-            if (SecurityMode.None == securityMode) {
+            if (SecurityMode.None == securityMode || SecurityMode.ActiveDisplay == securityMode) {
                 finish = true; // no security required
             } else {
                 showSecurityScreen(securityMode); // switch to the alternate security view
@@ -993,6 +994,7 @@ public class KeyguardHostView extends KeyguardViewBase {
             mSecurityViewContainer.addView(v);
             updateSecurityView(v);
             view = (KeyguardSecurityView)v;
+            
         }
 
         if (view instanceof KeyguardSelectorView) {
@@ -1018,7 +1020,7 @@ public class KeyguardHostView extends KeyguardViewBase {
         KeyguardSecurityView oldView = getSecurityView(mCurrentSecuritySelection);
         KeyguardSecurityView newView = getSecurityView(securityMode);
 
-        // Enter full screen mode if we're in SIM or Account screen
+        // Enter full screen mode if we're in SIM or Account screen or ActiveDisplay Mode
         boolean fullScreenEnabled = getResources().getBoolean(R.bool.kg_sim_puk_account_full_screen);
         boolean isSimOrAccount = securityMode == SecurityMode.SimPin
                 || securityMode == SecurityMode.SimPuk
@@ -1059,7 +1061,7 @@ public class KeyguardHostView extends KeyguardViewBase {
             }
         }
 
-        if (securityMode == SecurityMode.None) {
+        if (securityMode == SecurityMode.None || securityMode == SecurityMode.ActiveDisplay) {
             // Discard current runnable if we're switching back to the selector view
             setOnDismissAction(null);
         }
@@ -1157,6 +1159,7 @@ public class KeyguardHostView extends KeyguardViewBase {
     private int getSecurityViewIdForMode(SecurityMode securityMode) {
         switch (securityMode) {
             case None: return R.id.keyguard_selector_view;
+            case ActiveDisplay: return R.id.keyguard_active_display_view;
             case Pattern: return R.id.keyguard_pattern_view;
             case PIN: return R.id.keyguard_pin_view;
             case Password: return R.id.keyguard_password_view;
@@ -1179,6 +1182,7 @@ public class KeyguardHostView extends KeyguardViewBase {
     private int getLayoutIdFor(SecurityMode securityMode) {
         switch (securityMode) {
             case None: return R.layout.keyguard_selector_view;
+            case ActiveDisplay: return R.layout.keyguard_active_display_view;
             case Pattern: return R.layout.keyguard_pattern_view;
             case PIN: return R.layout.keyguard_pin_view;
             case Password: return R.layout.keyguard_password_view;

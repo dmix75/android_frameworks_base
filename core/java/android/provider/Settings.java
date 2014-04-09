@@ -2662,18 +2662,6 @@ public final class Settings {
         public static final String ACTIVE_DISPLAY_TEXT = "active_display_text";
 
         /**
-         * Time to redisplay notifications on screen from when screen turns off, 0 = never redisplay
-         * @hide
-         */
-        public static final String ACTIVE_DISPLAY_REDISPLAY = "active_display_redisplay";
-
-        /**
-         * Brightness of the display when displaying the active display view
-         * @hide
-         */
-        public static final String ACTIVE_DISPLAY_BRIGHTNESS = "active_display_brightness";
-
-        /**
          * Display active display view when device comes out of the user's pocket, etc...
          * @hide
          */
@@ -2692,27 +2680,13 @@ public final class Settings {
         public static final String ACTIVE_DISPLAY_HIDE_LOW_PRIORITY_NOTIFICATIONS =
                 "active_display_hide_low_priority_notifications";
 
-	// - Active Display Chameleonn OS 
-
-        /**
-         * Whether to display AM/PM after time when in 12h format
-         * @hide
-         */
-        public static final String ACTIVE_DISPLAY_SHOW_AMPM = "active_display_show_ampm";
-
-        /**
-         * Whether to display the date above the time
-         * @hide
-         */
-        public static final String ACTIVE_DISPLAY_SHOW_DATE = "active_display_show_date";
-
         /**
          * Whether to invert the colors when in bright light
          * @hide
          */
         public static final String ACTIVE_DISPLAY_SUNLIGHT_MODE = "active_display_sunlight_mode";
 
-  /**
+        /**
          * A list of packages to exclude from being displayed in active display.
          * This should be a string of packages separated by |
          * @hide

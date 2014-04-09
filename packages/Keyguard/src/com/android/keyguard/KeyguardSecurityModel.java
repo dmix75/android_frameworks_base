@@ -20,13 +20,19 @@ package com.android.keyguard;
 import android.app.Profile;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
+import android.provider.Settings;
 import android.telephony.MSimTelephonyManager;
 import android.telephony.TelephonyManager;
+
+import android.content.ContentResolver;
+import android.util.Log;
 
 import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.widget.LockPatternUtils;
 
 public class KeyguardSecurityModel {
+    private static final boolean DEBUG = true;
+    private static final String TAG = "KeyguardSecurityModel";
     /**
      * The different types of security available for {@link Mode#UnlockScreen}.
      * @see com.android.internal.policy.impl.LockPatternKeyguardView#getUnlockMode()
@@ -34,6 +40,7 @@ public class KeyguardSecurityModel {
     enum SecurityMode {
         Invalid, // NULL state
         None, // No security enabled
+        ActiveDisplay, // Active Display
         Pattern, // Unlock by drawing a pattern.
         Password, // Unlock by entering an alphanumeric password
         PIN, // Strictly numeric password
@@ -94,37 +101,53 @@ public class KeyguardSecurityModel {
         }
 
         SecurityMode mode = SecurityMode.None;
+        Log.d(TAG,"getSecuirtyMode()" + mode);
         if (simState == IccCardConstants.State.PIN_REQUIRED) {
             mode = SecurityMode.SimPin;
         } else if (simState == IccCardConstants.State.PUK_REQUIRED
                 && mLockPatternUtils.isPukUnlockScreenEnable()) {
             mode = SecurityMode.SimPuk;
         } else if (mLockPatternUtils.getActiveProfileLockMode() != Profile.LockMode.INSECURE) {
+            Log.d(TAG,"getSecuirtyMode() mLockPatternUtils check");
             final int security = mLockPatternUtils.getKeyguardStoredPasswordQuality();
+            Log.d(TAG,"getSecuirtyMode() mLockPatternUtils:" + security);
             switch (security) {
                 case DevicePolicyManager.PASSWORD_QUALITY_NUMERIC:
                     mode = mLockPatternUtils.isLockPasswordEnabled() ?
                             SecurityMode.PIN : SecurityMode.None;
+                    Log.d(TAG,"PASSWORD_QUALITY_NUMERIC");
                     break;
                 case DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC:
                 case DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC:
                 case DevicePolicyManager.PASSWORD_QUALITY_COMPLEX:
+                    Log.d(TAG,"PASSWORD_QUALITY_#2");
                     mode = mLockPatternUtils.isLockPasswordEnabled() ?
                             SecurityMode.Password : SecurityMode.None;
                     break;
 
                 case DevicePolicyManager.PASSWORD_QUALITY_SOMETHING:
                 case DevicePolicyManager.PASSWORD_QUALITY_UNSPECIFIED:
+                    Log.d(TAG,"PASSWORD_QUALITY_#3");
                     if (mLockPatternUtils.isLockPatternEnabled()) {
                         mode = mLockPatternUtils.isPermanentlyLocked() ?
                             SecurityMode.Account : SecurityMode.Pattern;
+                    } else {
+                        ContentResolver resolver =
+                                KeyguardSecurityModel.this.mContext.getContentResolver();
+                        boolean mDisplayNotifications = Settings.System.getInt(
+                                resolver, Settings.System.ENABLE_ACTIVE_DISPLAY, 0) == 1;
+                        Log.d(TAG,"ActiveDisplayEnabled? " + mDisplayNotifications);
+                        if (mDisplayNotifications) {
+                            Log.d(TAG, "Active Display enabled");
+                            mode = SecurityMode.ActiveDisplay;
+                        }
                     }
                     break;
 
                 default:
                     throw new IllegalStateException("Unknown unlock mode:" + mode);
             }
-        }
+        } 
         return mode;
     }
 
